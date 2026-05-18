@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment – PLANORA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <style>
+        /* ── PAGE ── */
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background:
+                linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+                url('/static/bg2.jpeg') center/cover no-repeat fixed;
+        }
+
+        .pay-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px 60px;
+        }
+
+        /* ── CARD ── */
+        .pay-card {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+            color: white;
+        }
+
+        /* ── TOP SUMMARY BAND ── */
+        .pay-header {
+            background: rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+            padding: 22px 28px 18px;
+        }
+
+        .pay-brand {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .pay-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin: 0 0 3px;
+        }
+
+        .pay-subtitle {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            margin: 0;
+        }
+
+        .pay-amount-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-top: 14px;
+        }
+
+        .pay-amount {
+            font-size: 36px;
+            font-weight: 800;
+            color: #86efac;
+            letter-spacing: -1px;
+        }
+
+        .pay-amount-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* ── BODY ── */
+        .pay-body { padding: 26px 28px 28px; }
+
+        /* ── TABS ── */
+        .pay-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 22px;
+        }
+
+        .pay-tab {
+            flex: 1;
+            padding: 9px 0;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            background: transparent;
+            color: rgba(255,255,255,0.55);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .pay-tab.active {
+            background: rgba(255,255,255,0.18);
+            color: white;
+            border-color: rgba(255,255,255,0.35);
+        }
+
+        .pay-tab:hover:not(.active) {
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* ── PANELS ── */
+        .pay-panel { display: none; }
+        .pay-panel.active { display: block; }
+
+        /* ── FIELD ── */
+        .field-group { margin-bottom: 16px; }
+
+        .field-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 7px;
+            display: block;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .field-input::placeholder { color: rgba(255,255,255,0.35); }
+
+        .field-input:focus {
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .field-input.error { border-color: #f87171; }
+
+        .field-row { display: flex; gap: 12px; }
+        .field-row .field-group { flex: 1; }
+
+        /* ── UPI ── */
+        .upi-apps {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .upi-app-btn {
+            flex: 1;
+            padding: 10px 6px;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.08);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.3px;
+        }
+
+        .upi-app-btn .upi-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        .upi-app-btn:hover, .upi-app-btn.selected {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        /* ── NETBANKING ── */
+        .bank-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 9px;
+            margin-bottom: 16px;
+        }
+
+        .bank-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 14px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.07);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .bank-option:hover, .bank-option.selected {
+            background: rgba(255,255,255,0.18);
+            border-color: rgba(255,255,255,0.35);
+        }
+
+        .bank-option input[type="radio"] { accent-color: #86efac; }
+
+        /* ── PAY BUTTON ── */
+        .pay-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: white;
+            color: #111;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .pay-btn:hover { background: #f0f0f0; transform: scale(1.02); }
+        .pay-btn:active { transform: scale(0.98); }
+
+        .pay-btn:disabled {
+            background: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.4);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── SECURE NOTE ── */
+        .secure-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 14px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 0.3px;
+        }
+
+        /* ── SUCCESS OVERLAY ── */
+        .success-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-overlay.show { display: flex; }
+
+        .success-box {
+            background: rgba(20,28,40,0.98);
+            border: 1px solid rgba(134,239,172,0.3);
+            border-radius: 22px;
+            padding: 48px 42px;
+            text-align: center;
+            max-width: 360px;
+            width: 90%;
+            color: white;
+            animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.85); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .success-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(134,239,172,0.15);
+            border: 2px solid #86efac;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            margin: 0 auto 20px;
+        }
+
+        .success-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0 0 8px;
+        }
+
+        .success-sub {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            margin: 0 0 6px;
+        }
+
+        .success-id {
+            font-size: 12px;
+            color: rgba(255,255,255,0.35);
+            margin: 0 0 28px;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+
+        .success-actions { display: flex; gap: 10px; justify-content: center; }
+
+        .btn-outline {
+            padding: 11px 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            background: transparent;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+        .btn-primary-sm {
+            padding: 11px 20px;
+            border: none;
+            border-radius: 10px;
+            background: white;
+            color: #111;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary-sm:hover { background: #f0f0f0; }
+
+        /* ── PROCESSING ── */
+        .processing-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(6px);
+            z-index: 9998;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+            color: white;
+        }
+        .processing-overlay.show { display: flex; }
+        .processing-ring {
+            width: 56px; height: 56px;
+            border: 3px solid rgba(255,255,255,0.15);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .processing-text { font-size: 15px; font-weight: 600; letter-spacing: 0.5px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a class="navbar-brand" href="/index">PLANORA</a>
+    <ul class="navbar-links">
+        <li><a href="/index">Home</a></li>
+        <li><a href="/index">Trip Planner</a></li>
+        <li><a href="/transport_booking">Transport Booking</a></li>
+        <li><a href="/hotel">Hotel Booking</a></li>
+        <li><a href="/chatbot">Travel Assistant</a></li>
+        <li><a href="/profile">Profile</a></li>
+    </ul>
+</nav>
+
+<div class="pay-wrap">
+    <div class="pay-card">
+
+        <!-- SUMMARY HEADER -->
+        <div class="pay-header">
+            <div class="pay-brand">PLANORA · SECURE CHECKOUT</div>
+            <p class="pay-title" id="payTitle">Booking Summary</p>
+            <p class="pay-subtitle" id="paySubtitle">Complete your payment to confirm</p>
+            <div class="pay-amount-row">
+                <div class="pay-amount" id="payAmount">₹0</div>
+                <div class="pay-amount-label">Total Payable</div>
+            </div>
+        </div>
+
+        <!-- PAYMENT BODY -->
+        <div class="pay-body">
+
+            <!-- TABS -->
+            <div class="pay-tabs">
+                <button class="pay-tab active" onclick="switchTab('card', this)">💳 Card</button>
+                <button class="pay-tab" onclick="switchTab('upi', this)">📱 UPI</button>
+                <button class="pay-tab" onclick="switchTab('netbanking', this)">🏦 Netbanking</button>
+            </div>
+
+            <!-- ── CARD PANEL ── -->
+            <div class="pay-panel active" id="panel-card">
+                <div class="field-group">
+                    <label class="field-label">Cardholder Name</label>
+                    <input class="field-input" id="cardName" type="text" placeholder="Name on card" autocomplete="cc-name">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Card Number</label>
+                    <input class="field-input" id="cardNumber" type="text" placeholder="0000 0000 0000 0000"
+                           maxlength="19" oninput="formatCard(this)" autocomplete="cc-number">
+                </div>
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Expiry</label>
+                        <input class="field-input" id="cardExpiry" type="text" placeholder="MM / YY"
+                               maxlength="7" oninput="formatExpiry(this)" autocomplete="cc-exp">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">CVV</label>
+                        <input class="field-input" id="cardCvv" type="password" placeholder="•••"
+                               maxlength="4" autocomplete="cc-csc">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── UPI PANEL ── -->
+            <div class="pay-panel" id="panel-upi">
+                <div class="upi-apps">
+                    <div class="upi-app-btn" onclick="selectUpiApp(this, 'gpay')">
+                        <span class="upi-icon">🟢</span> GPay
+                    </div>
+                    <div class="upi-app-btn" onclick="selectUpiApp(this, 'phonepe')">
+                        <span class="upi-icon">🟣</span> PhonePe
+                    </div>
+                    <div class="upi-app-btn" onclick="selectUpiApp(this, 'paytm')">
+                        <span class="upi-icon">🔵</span> Paytm
+                    </div>
+                    <div class="upi-app-btn" onclick="selectUpiApp(this, 'bhim')">
+                        <span class="upi-icon">🟠</span> BHIM
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">UPI ID</label>
+                    <input class="field-input" id="upiId" type="text" placeholder="yourname@upi">
+                </div>
+            </div>
+
+            <!-- ── NETBANKING PANEL ── -->
+            <div class="pay-panel" id="panel-netbanking">
+                <div class="bank-grid">
+                    <label class="bank-option" onclick="selectBank(this)">
+                        <input type="radio" name="bank" value="sbi"> 🏛️ SBI
+                    </label>
+                    <label class="bank-option" onclick="selectBank(this)">
+                        <input type="radio" name="bank" value="hdfc"> 🏛️ HDFC
+                    </label>
+                    <label class="bank-option" onclick="selectBank(this)">
+                        <input type="radio" name="bank" value="icici"> 🏛️ ICICI
+                    </label>
+                    <label class="bank-option" onclick="selectBank(this)">
+                        <input type="radio" name="bank" value="axis"> 🏛️ Axis
+                    </label>
+                    <label class="bank-option" onclick="selectBank(this)">
+                        <input type="radio" name="bank" value="kotak"> 🏛️ Kotak
+                    </label>
+                    <label class="bank-option" onclick="selectBank(this)">
+                        <input type="radio" name="bank" value="pnb"> 🏛️ PNB
+                    </label>
+                </div>
+            </div>
+
+            <!-- PAY BUTTON -->
+            <button class="pay-btn" id="payBtn" onclick="processPayment()">
+                🔒 Pay <span id="payBtnAmount">₹0</span>
+            </button>
+
+            <div class="secure-note">
+                🔒 256-bit SSL encrypted &nbsp;·&nbsp; PCI DSS compliant
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- PROCESSING OVERLAY -->
+<div class="processing-overlay" id="processingOverlay">
+    <div class="processing-ring"></div>
+    <div class="processing-text" id="processingText">Processing your payment…</div>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+    <div class="success-box">
+        <div class="success-icon">✓</div>
+        <div class="success-title">Payment Successful!</div>
+        <p class="success-sub" id="successDesc">Your booking is confirmed.</p>
+        <p class="success-id" id="successTxnId">TXN# —</p>
+        <div class="success-actions">
+            <button class="btn-outline" onclick="goBack()">← Go Back</button>
+            <button class="btn-primary-sm" onclick="goHome()">🏠 Home</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Load booking context from localStorage ──
+const bookingCtx = JSON.parse(localStorage.getItem('planora_payment') || '{}');
+
+const title    = bookingCtx.title    || 'Booking';
+const subtitle = bookingCtx.subtitle || '';
+const amount   = bookingCtx.amount   || 0;
+const type     = bookingCtx.type     || '';   // 'transport' | 'hotel'
+const origin   = bookingCtx.origin   || '/result';
+
+document.getElementById('payTitle').textContent       = title;
+document.getElementById('paySubtitle').textContent    = subtitle;
+document.getElementById('payAmount').textContent      = '₹' + Number(amount).toLocaleString('en-IN');
+document.getElementById('payBtnAmount').textContent   = '₹' + Number(amount).toLocaleString('en-IN');
+
+// ── Tab switching ──
+function switchTab(name, btn) {
+    document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pay-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── UPI app selection ──
+function selectUpiApp(el, app) {
+    document.querySelectorAll('.upi-app-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    // Pre-fill UPI suffix hint
+    const hints = { gpay: '@okaxis', phonepe: '@ybl', paytm: '@paytm', bhim: '@upi' };
+    const input = document.getElementById('upiId');
+    if (!input.value) input.placeholder = 'yourname' + (hints[app] || '@upi');
+}
+
+// ── Bank selection ──
+function selectBank(el) {
+    document.querySelectorAll('.bank-option').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+// ── Card formatting ──
+function formatCard(input) {
+    let v = input.value.replace(/\D/g, '').slice(0, 16);
+    input.value = v.replace(/(.{4})/g, '$1 ').trim();
+}
+
+function formatExpiry(input) {
+    let v = input.value.replace(/\D/g, '').slice(0, 4);
+    if (v.length > 2) v = v.slice(0,2) + ' / ' + v.slice(2);
+    input.value = v;
+}
+
+// ── Validation ──
+function validateCard() {
+    const name   = document.getElementById('cardName').value.trim();
+    const number = document.getElementById('cardNumber').value.replace(/\s/g,'');
+    const expiry = document.getElementById('cardExpiry').value.replace(/\s/g,'').replace('/','');
+    const cvv    = document.getElementById('cardCvv').value.trim();
+
+    let ok = true;
+
+    if (!name) { highlight('cardName'); ok = false; }
+    if (number.length < 16) { highlight('cardNumber'); ok = false; }
+    if (expiry.length < 4)  { highlight('cardExpiry'); ok = false; }
+    if (cvv.length < 3)     { highlight('cardCvv'); ok = false; }
+
+    return ok;
+}
+
+function validateUPI() {
+    const id = document.getElementById('upiId').value.trim();
+    const ok = /^[\w.\-]+@[\w]+$/.test(id);
+    if (!ok) highlight('upiId');
+    return ok;
+}
+
+function validateNetbanking() {
+    return !!document.querySelector('input[name="bank"]:checked');
+}
+
+function highlight(id) {
+    const el = document.getElementById(id);
+    el.classList.add('error');
+    el.addEventListener('input', () => el.classList.remove('error'), { once: true });
+}
+
+// ── Payment processing ──
+async function processPayment() {
+    // Determine active panel
+    const activePanel = document.querySelector('.pay-panel.active').id;
+    let valid = false;
+
+    if (activePanel === 'panel-card')       valid = validateCard();
+    else if (activePanel === 'panel-upi')   valid = validateUPI();
+    else if (activePanel === 'panel-netbanking') valid = validateNetbanking();
+
+    if (!valid) return;
+
+    const btn = document.getElementById('payBtn');
+    btn.disabled = true;
+
+    // Step 1: "Connecting to bank"
+    showProcessing('Connecting to bank…');
+    await delay(900);
+
+    // Step 2: "Authenticating"
+    setProcessingText('Authenticating…');
+    await delay(800);
+
+    // Step 3: "Processing payment"
+    setProcessingText('Processing payment…');
+    await delay(1000);
+
+    // Step 4: Backend confirmation
+    try {
+        const email = localStorage.getItem('userEmail') || '';
+        const res = await fetch('/confirm_payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email:    email,
+                title:    bookingCtx.title   || '',
+                subtitle: bookingCtx.subtitle || '',
+                amount:   bookingCtx.amount  || 0,
+                type:     bookingCtx.type    || '',
+                extra:    bookingCtx.extra   || {}
+            })
+        });
+        await res.json();   // don't block on failure
+    } catch(e) {
+        console.warn('Payment confirmation error (non-fatal):', e);
+    }
+
+    hideProcessing();
+    showSuccess();
+    btn.disabled = false;
+}
+
+// ── Overlays ──
+function showProcessing(msg) {
+    document.getElementById('processingText').textContent = msg;
+    document.getElementById('processingOverlay').classList.add('show');
+}
+function setProcessingText(msg) {
+    document.getElementById('processingText').textContent = msg;
+}
+function hideProcessing() {
+    document.getElementById('processingOverlay').classList.remove('show');
+}
+
+function showSuccess() {
+    const txnId = 'PL' + Date.now().toString(36).toUpperCase();
+    document.getElementById('successDesc').textContent =
+        (bookingCtx.title || 'Your booking') + ' is confirmed!';
+    document.getElementById('successTxnId').textContent = 'TXN# ' + txnId;
+    document.getElementById('successOverlay').classList.add('show');
+
+    // ── Save booking to trip history ──────────────────────────
+    const bookingType = bookingCtx.type || 'booking';   // 'hotel' | 'transport'
+    const extra       = bookingCtx.extra || {};
+
+    let historyEntry = null;
+
+    if (bookingType === 'hotel') {
+        // extra: { hotel, location, price }
+        historyEntry = {
+            destination: extra.hotel    || bookingCtx.title   || 'Hotel',
+            date:        extra.checkIn  || new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' }),
+            days:        extra.nights   || '—',
+            budget:      extra.price    || bookingCtx.amount  || 0,
+            type:        '🏨 Hotel Booking',
+            txnId:       txnId
+        };
+    } else if (bookingType === 'transport') {
+        // extra: { operator, transport_type, source, destination, travel_date }
+        historyEntry = {
+            destination: extra.destination   || bookingCtx.subtitle || 'Destination',
+            date:        extra.travel_date   || new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' }),
+            days:        '—',
+            budget:      bookingCtx.amount   || 0,
+            type:        '🚗 ' + (extra.transport_type || 'Transport') + ' — ' + (extra.operator || bookingCtx.title || ''),
+            txnId:       txnId
+        };
+    }
+
+    if (historyEntry) {
+        const history = JSON.parse(localStorage.getItem('tripHistory') || '[]');
+        history.unshift(historyEntry);
+        if (history.length > 20) history.pop();
+        localStorage.setItem('tripHistory', JSON.stringify(history));
+    }
+    // ─────────────────────────────────────────────────────────
+
+    localStorage.removeItem('planora_payment');
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function goBack() { window.location.href = bookingCtx.origin || '/result'; }
+function goHome() { window.location.href = '/index'; }
+</script>
+</body>
+</html>

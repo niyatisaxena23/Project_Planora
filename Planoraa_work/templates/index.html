@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PLANORA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <style>
+        /* ── Date picker field ── */
+        .date-input-wrapper {
+            position: relative;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .date-display {
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 14px;
+            height: 35px;
+            box-sizing: border-box;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+        }
+
+        .date-display span {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .date-display.selected span {
+            color: white;
+        }
+
+        .date-display .cal-icon {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        /* ── Calendar popup ── */
+        .calendar-popup {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            z-index: 999;
+            background: rgba(30, 30, 50, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 14px;
+            padding: 16px;
+            width: 280px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .calendar-popup.open {
+            display: block;
+        }
+
+        /* Header: prev / Month Year / next */
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .cal-header button {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 16px;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            padding: 0;
+        }
+
+        .cal-header button:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .cal-month-label {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Day-of-week row */
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .cal-dow {
+            text-align: center;
+            font-size: 11px;
+            color: rgba(255,255,255,0.45);
+            font-weight: 600;
+            padding-bottom: 6px;
+        }
+
+        /* Individual day cells */
+        .cal-day {
+            text-align: center;
+            padding: 6px 0;
+            border-radius: 6px;
+            font-size: 13px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .cal-day:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .cal-day.today {
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .cal-day.selected {
+            background: white;
+            color: #1e1e32;
+            font-weight: 700;
+        }
+
+        .cal-day.disabled {
+            color: rgba(255,255,255,0.2);
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .cal-day.empty {
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a class="navbar-brand" href="/index">PLANORA</a>
+    <ul class="navbar-links">
+        <li><a href="/index" class="active">Home</a></li>
+        <li><a href="/index">Trip Planner</a></li>
+        <li><a href="/transport_booking">Transport Booking</a></li>
+        <li><a href="/hotel">Hotel Booking</a></li>
+        <li><a href="/chatbot">Travel Assistant</a></li>
+        <li><a href="/profile" >Profile</a></li>
+    </ul>
+</nav>
+
+<div class="search-container">
+    <h2 class="main-heading">Choose your next destination</h2>
+
+    <select id="location" class="dropdown">
+        <option value="">Your Location</option>
+        <option value="Mumbai">Mumbai</option>
+        <option value="Delhi">Delhi</option>
+        <option value="Bengaluru">Bengaluru</option>
+        <option value="Chennai">Chennai</option>
+        <option value="Kolkata">Kolkata</option>
+        <option value="Hyderabad">Hyderabad</option>
+        <option value="Pune">Pune</option>
+        <option value="Ahmedabad">Ahmedabad</option>
+        <option value="Jaipur">Jaipur</option>
+        <option value="Chandigarh">Chandigarh</option>
+        <option value="Lucknow">Lucknow</option>
+        <option value="Kochi">Kochi</option>
+        <option value="Bhopal">Bhopal</option>
+        <option value="Nagpur">Nagpur</option>
+        <option value="Surat">Surat</option>
+    </select>
+
+    <select id="destination" class="dropdown">
+        <option value="">Select Destination</option>
+        <option value="Goa">Goa</option>
+        <option value="Manali">Manali</option>
+        <option value="Delhi">Delhi</option>
+        <option value="Jaipur">Jaipur</option>
+        <option value="Kerala">Kerala</option>
+        <option value="Mumbai">Mumbai</option>
+        <option value="Udaipur">Udaipur</option>
+        <option value="Rishikesh">Rishikesh</option>
+        <option value="Shimla">Shimla</option>
+        <option value="Leh Ladakh">Leh Ladakh</option>
+        <option value="Paris">Paris, France</option>
+        <option value="London">London, UK</option>
+        <option value="New York">New York, USA</option>
+        <option value="Dubai">Dubai, UAE</option>
+        <option value="Singapore">Singapore</option>
+        <option value="Bangkok">Bangkok, Thailand</option>
+        <option value="Tokyo">Tokyo, Japan</option>
+        <option value="Bali">Bali, Indonesia</option>
+        <option value="Rome">Rome, Italy</option>
+        <option value="Sydney">Sydney, Australia</option>
+    </select>
+
+    <!-- Date picker -->
+    <div class="date-input-wrapper" id="dateWrapper">
+        <div class="date-display" id="dateDisplay" onclick="toggleCalendar()">
+            <span id="dateLabel">Travel Date</span>
+            <span class="cal-icon">📅</span>
+        </div>
+        <div class="calendar-popup" id="calendarPopup">
+            <div class="cal-header">
+                <button onclick="changeMonth(-1)">&#8249;</button>
+                <span class="cal-month-label" id="calMonthLabel"></span>
+                <button onclick="changeMonth(1)">&#8250;</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+        </div>
+    </div>
+
+    <input type="number" id="days" placeholder="Days">
+    <input type="number" id="budget" placeholder="Budget (₹)">
+
+    <button onclick="goToResults()">Search</button>
+</div>
+
+<script>
+    const MONTHS = ["January","February","March","April","May","June",
+                    "July","August","September","October","November","December"];
+    const DAYS   = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+
+    const today  = new Date();
+    today.setHours(0,0,0,0);
+
+    let calDate     = new Date(today.getFullYear(), today.getMonth(), 1);
+    let selectedDate = null;
+
+    function toggleCalendar() {
+        const popup = document.getElementById("calendarPopup");
+        popup.classList.toggle("open");
+        if (popup.classList.contains("open")) renderCalendar();
+    }
+
+    function changeMonth(dir) {
+        calDate.setMonth(calDate.getMonth() + dir);
+        renderCalendar();
+    }
+
+    function renderCalendar() {
+        const grid  = document.getElementById("calGrid");
+        const label = document.getElementById("calMonthLabel");
+        grid.innerHTML = "";
+
+        label.textContent = MONTHS[calDate.getMonth()] + " " + calDate.getFullYear();
+
+        // Day-of-week headers
+        DAYS.forEach(d => {
+            const cell = document.createElement("div");
+            cell.className = "cal-dow";
+            cell.textContent = d;
+            grid.appendChild(cell);
+        });
+
+        const firstDay = new Date(calDate.getFullYear(), calDate.getMonth(), 1).getDay();
+        const daysInMonth = new Date(calDate.getFullYear(), calDate.getMonth() + 1, 0).getDate();
+
+        // Empty cells before first day
+        for (let i = 0; i < firstDay; i++) {
+            const empty = document.createElement("div");
+            empty.className = "cal-day empty";
+            grid.appendChild(empty);
+        }
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const cell = document.createElement("div");
+            cell.className = "cal-day";
+            cell.textContent = d;
+
+            const cellDate = new Date(calDate.getFullYear(), calDate.getMonth(), d);
+
+            if (cellDate < today) {
+                cell.classList.add("disabled");
+            } else {
+                if (cellDate.getTime() === today.getTime()) cell.classList.add("today");
+                if (selectedDate && cellDate.getTime() === selectedDate.getTime()) cell.classList.add("selected");
+
+                cell.onclick = () => selectDate(cellDate);
+            }
+
+            grid.appendChild(cell);
+        }
+    }
+
+    function selectDate(date) {
+        selectedDate = date;
+
+        const label = document.getElementById("dateLabel");
+        const display = document.getElementById("dateDisplay");
+        label.textContent = date.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+        display.classList.add("selected");
+
+        document.getElementById("calendarPopup").classList.remove("open");
+    }
+
+    // Close calendar when clicking outside
+    document.addEventListener("click", function(e) {
+        const wrapper = document.getElementById("dateWrapper");
+        if (!wrapper.contains(e.target)) {
+            document.getElementById("calendarPopup").classList.remove("open");
+        }
+    });
+</script>
+
+</body>
+</html>

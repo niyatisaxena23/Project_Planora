@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Transport Booking</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet">
+
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}">
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+
+    background:
+    linear-gradient(rgba(0,0,0,0.72),
+    rgba(0,0,0,0.72)),
+    url('/static/bg2.jpeg');
+
+    background-size:cover;
+    background-position:center;
+    background-attachment:fixed;
+
+    min-height:100vh;
+    padding:0;
+}
+
+/* PAGE LAYOUT */
+
+.transport-page{
+
+    width:100%;
+    min-height:100vh;
+
+    padding-top:95px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.container{
+
+    width:92%;
+    max-width:1450px;
+}
+
+/* HERO */
+
+.hero-section{
+
+    width:100%;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+
+    margin-top:35px;
+}
+
+.hero-title{
+
+    color:white;
+
+    font-size:64px;
+    font-weight:800;
+
+    line-height:1.05;
+
+    text-align:center;
+
+    margin-bottom:14px;
+
+    letter-spacing:-2px;
+}
+
+.hero-subtitle{
+
+    color:#d1d5db;
+
+    font-size:18px;
+
+    text-align:center;
+
+    margin-bottom:34px;
+}
+
+/* SEARCH BAR */
+
+.transport-search-bar{
+
+    width:100%;
+    max-width:1380px;
+
+    display:grid;
+
+    grid-template-columns:
+    1.2fr
+    1.2fr
+    1fr
+    1fr
+    1fr
+    70px;
+
+    align-items:center;
+
+    background:rgba(255,255,255,0.12);
+
+    backdrop-filter:blur(18px);
+
+    border-radius:30px;
+
+    padding:10px 14px;
+
+    border:1px solid
+    rgba(255,255,255,0.08);
+
+    gap:0;
+
+    overflow:visible;
+    position:relative;
+    z-index:10;
+}
+
+/* SEARCH ITEMS */
+
+.search-item{
+
+    display:flex;
+    flex-direction:column;
+
+    justify-content:center;
+
+    height:72px;
+
+    padding:0 22px;
+
+    border-right:1px solid
+    rgba(255,255,255,0.12);
+
+    position:relative;
+    overflow:visible;
+}
+
+.search-item:last-of-type{
+    border-right:none;
+}
+
+.search-item label{
+
+    color:#9ca3af;
+
+    font-size:11px;
+    font-weight:700;
+
+    margin-bottom:8px;
+
+    letter-spacing:1px;
+}
+
+.search-item input,
+.search-item select{
+
+    background:transparent;
+
+    border:none;
+    outline:none;
+
+    color:white;
+
+    font-size:15px;
+    font-weight:600;
+
+    width:100%;
+
+    padding:0;
+    appearance:none;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+
+    cursor:pointer;
+}
+
+/* only real selects get the arrow — not date/number inputs */
+.search-item select:not(.hidden-select){
+
+    background-image:url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+
+    background-repeat:no-repeat;
+    background-position:right center;
+
+    padding-right:30px;
+}
+
+/* remove spinner arrows from number input */
+.search-item input[type="number"]::-webkit-inner-spin-button,
+.search-item input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+
+/* style the date picker icon to match */
+.search-item input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.search-item input::placeholder{
+    color:#aaa;
+}
+
+.search-item select option{
+    color:black;
+}
+
+/* SEARCH BUTTON */
+
+.hero-search-btn{
+
+    width:54px;
+    height:54px;
+
+    border:none;
+
+    border-radius:18px;
+
+    background:white;
+
+    color:black;
+
+    font-size:22px;
+
+    cursor:pointer;
+
+    transition:0.3s;
+
+    justify-self:center;
+}
+
+.hero-search-btn:hover{
+
+    transform:scale(1.05);
+}
+
+/* ROUTES */
+
+.routes{
+
+    width:100%;
+
+    display:grid;
+
+    gap:22px;
+
+    margin-top:45px;
+}
+
+.route-card{
+
+    background:rgba(255,255,255,0.12);
+
+    backdrop-filter:blur(18px);
+
+    border-radius:24px;
+
+    padding:24px 28px;
+
+    display:flex;
+
+    justify-content:space-between;
+    align-items:center;
+
+    color:white;
+
+    border:1px solid
+    rgba(255,255,255,0.08);
+}
+
+.operator{
+
+    font-size:24px;
+    font-weight:700;
+}
+
+.time{
+
+    margin-top:8px;
+
+    color:#d1d5db;
+
+    font-size:15px;
+}
+
+.price{
+
+    font-size:26px;
+    font-weight:700;
+}
+
+.book-btn{
+
+    margin-top:14px;
+
+    border:none;
+
+    background:#22c55e;
+
+    color:white;
+
+    padding:12px 22px;
+
+    border-radius:12px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:0.3s;
+}
+
+.book-btn:hover{
+
+    background:#16a34a;
+
+    transform:translateY(-2px);
+}
+
+/* LOADER */
+
+.loader{
+
+    color:white;
+
+    text-align:center;
+
+    font-size:18px;
+
+    display:none;
+
+    margin-top:35px;
+}
+
+/* CUSTOM DROPDOWN */
+
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    width: 100%;
+    user-select: none;
+    gap: 6px;
+}
+
+.custom-select-trigger .placeholder {
+    color: #aaa;
+    font-weight: 600;
+}
+
+.custom-select-trigger .arrow {
+    font-size: 10px;
+    opacity: 0.7;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.custom-select-wrapper.open .arrow {
+    transform: rotate(180deg);
+}
+
+.custom-select-options {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: -22px;
+    min-width: 200px;
+    background: rgba(20, 20, 35, 0.97);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 6px;
+    z-index: 9999;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.custom-select-wrapper.open .custom-select-options {
+    display: block;
+}
+
+.custom-select-options::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-select-options::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-select-options::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+}
+
+.custom-option {
+    padding: 9px 14px;
+    color: rgba(255,255,255,0.85);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.custom-option:hover {
+    background: rgba(255,255,255,0.12);
+    color: white;
+}
+
+.custom-option.selected {
+    background: rgba(255,255,255,0.18);
+    color: white;
+    font-weight: 700;
+}
+
+/* hide real selects */
+.search-item select.hidden-select {
+    display: none;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:1200px){
+
+    .transport-search-bar{
+
+        grid-template-columns:1fr;
+
+        gap:0;
+    }
+
+    .search-item{
+
+        border-right:none;
+
+        border-bottom:1px solid
+        rgba(255,255,255,0.1);
+
+        width:100%;
+
+        height:68px;
+    }
+
+    .hero-search-btn{
+
+        width:100%;
+        margin-top:18px;
+    }
+
+    .hero-title{
+
+        font-size:48px;
+    }
+
+    .hero-subtitle{
+
+        font-size:16px;
+    }
+
+    .route-card{
+
+        flex-direction:column;
+        align-items:flex-start;
+
+        gap:22px;
+    }
+}
+
+
+
+</style>
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <a class="navbar-brand" href="/index">
+        PLANORA
+    </a>
+
+    <ul class="navbar-links">
+
+        <li>
+            <a href="/index">Home</a>
+        </li>
+
+        <li>
+            <a href="/index">
+                Trip Planner
+            </a>
+        </li>
+
+        <li>
+            <a href="/transport_booking" class="active">
+                Transport Booking
+            </a>
+        </li>
+
+        <li>
+            <a href="/hotel">
+                Hotel Booking
+            </a>
+        </li>
+
+        <li>
+            <a href="/chatbot">
+                Travel Assistant
+            </a>
+        </li>
+
+        <li>
+            <a href="/profile">
+                Profile
+            </a>
+        </li>
+
+    </ul>
+
+</nav>
+
+<div class="transport-page">
+
+    <div class="container">
+
+        <div class="hero-section">
+
+            <h1 class="hero-title">
+                Find Your Perfect Journey
+            </h1>
+
+            <p class="hero-subtitle">
+                Search flights, trains & buses at the best prices
+            </p>
+
+            <div class="transport-search-bar">
+
+                <!-- FROM -->
+
+                <div class="search-item">
+
+                    <label>FROM</label>
+
+                    <select id="source" class="hidden-select">
+                        <option value="">Select source</option>
+                        {% for city in destinations %}
+                        <option value="{{ city }}">{{ city }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <div class="custom-select-wrapper" id="source-wrapper">
+                        <div class="custom-select-trigger" onclick="toggleDropdown('source-wrapper')">
+                            <span class="placeholder" id="source-label">Select source</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="custom-select-options" id="source-options"></div>
+                    </div>
+
+                </div>
+
+                <!-- DESTINATION -->
+
+                <div class="search-item">
+
+                    <label>DESTINATION</label>
+
+                    <select id="destination" class="hidden-select">
+                        <option value="">Select destination</option>
+                        {% for city in destinations %}
+                        <option value="{{ city }}">{{ city }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <div class="custom-select-wrapper" id="destination-wrapper">
+                        <div class="custom-select-trigger" onclick="toggleDropdown('destination-wrapper')">
+                            <span class="placeholder" id="destination-label">Select destination</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="custom-select-options" id="destination-options"></div>
+                    </div>
+
+                </div>
+
+                <!-- DATE -->
+
+                <div class="search-item">
+
+                    <label>DATE</label>
+
+                    <input type="date"
+                        id="date">
+
+                </div>
+
+                <!-- PASSENGERS -->
+
+                <div class="search-item">
+
+                    <label>PASSENGERS</label>
+
+                    <input type="number"
+                        id="passengers"
+                        value="1"
+                        min="1">
+
+                </div>
+
+                <!-- TRANSPORT -->
+
+                <div class="search-item">
+
+                    <label>TRANSPORT</label>
+
+                    <select id="transport" class="hidden-select">
+                        <option>Flight</option>
+                        <option>Train</option>
+                        <option>Bus</option>
+                    </select>
+
+                    <div class="custom-select-wrapper" id="transport-wrapper">
+                        <div class="custom-select-trigger" onclick="toggleDropdown('transport-wrapper')">
+                            <span id="transport-label">Flight</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="custom-select-options" id="transport-options"></div>
+                    </div>
+
+                </div>
+
+                <!-- BUTTON -->
+
+                <button class="hero-search-btn"
+                        onclick="searchTransport()">
+
+                    🔍
+
+                </button>
+
+            </div>
+
+        </div>
+        <div class="loader"
+            id="loader">
+
+            Searching transport options...
+        </div>
+
+        <div class="routes"
+            id="routes">
+
+        </div>
+
+    </div>
+
+    <script>
+
+    // ── Custom dropdown logic ──────────────────────────────
+
+    // Config: which dropdowns and their options
+    const dropdownConfigs = {
+        "source": {
+            wrapperId: "source-wrapper",
+            labelId: "source-label",
+            optionsId: "source-options",
+            selectId: "source",
+            placeholder: "Select source"
+        },
+        "destination": {
+            wrapperId: "destination-wrapper",
+            labelId: "destination-label",
+            optionsId: "destination-options",
+            selectId: "destination",
+            placeholder: "Select destination"
+        },
+        "transport": {
+            wrapperId: "transport-wrapper",
+            labelId: "transport-label",
+            optionsId: "transport-options",
+            selectId: "transport",
+            placeholder: null,
+            staticOptions: ["Flight", "Train", "Bus"],
+            defaultValue: "Flight"
+        }
+    };
+
+    function buildDropdowns() {
+        Object.keys(dropdownConfigs).forEach(key => {
+            const cfg = dropdownConfigs[key];
+            const select = document.getElementById(cfg.selectId);
+            const optionsEl = document.getElementById(cfg.optionsId);
+
+            // Get options — either from static list or from the hidden <select>
+            let items = cfg.staticOptions
+                ? cfg.staticOptions.map(o => ({ value: o, text: o }))
+                : Array.from(select.options)
+                      .filter(o => o.value !== "")
+                      .map(o => ({ value: o.value, text: o.text }));
+
+            // Set default for transport
+            if (cfg.defaultValue) {
+                select.value = cfg.defaultValue;
+            }
+
+            items.forEach(item => {
+                const div = document.createElement("div");
+                div.className = "custom-option" + (item.value === select.value ? " selected" : "");
+                div.textContent = item.text;
+                div.dataset.value = item.value;
+                div.onclick = () => selectOption(key, item.value, item.text);
+                optionsEl.appendChild(div);
+            });
+        });
+    }
+
+    function toggleDropdown(wrapperId) {
+        const wrapper = document.getElementById(wrapperId);
+        const isOpen = wrapper.classList.contains("open");
+
+        // Close all
+        document.querySelectorAll(".custom-select-wrapper.open").forEach(w => w.classList.remove("open"));
+
+        if (!isOpen) {
+            wrapper.classList.add("open");
+        }
+    }
+
+    function selectOption(key, value, text) {
+        const cfg = dropdownConfigs[key];
+
+        // Update hidden select
+        document.getElementById(cfg.selectId).value = value;
+
+        // Update label
+        const label = document.getElementById(cfg.labelId);
+        label.textContent = text;
+        label.classList.remove("placeholder");
+
+        // Update selected highlight
+        document.querySelectorAll(`#${cfg.optionsId} .custom-option`).forEach(opt => {
+            opt.classList.toggle("selected", opt.dataset.value === value);
+        });
+
+        // Close dropdown
+        document.getElementById(cfg.wrapperId).classList.remove("open");
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener("click", function(e) {
+        if (!e.target.closest(".custom-select-wrapper")) {
+            document.querySelectorAll(".custom-select-wrapper.open").forEach(w => w.classList.remove("open"));
+        }
+    });
+
+    // Build on load — for static options; dynamic (Jinja) options are already in the hidden <select>
+    window.addEventListener("DOMContentLoaded", buildDropdowns);
+
+    // ── Transport search ───────────────────────────────────
+
+    async function searchTransport(){
+
+        const source =
+            document.getElementById("source").value;
+
+        const destination =
+            document.getElementById("destination").value;
+
+        const date =
+            document.getElementById("date").value;
+
+        const passengers =
+            document.getElementById("passengers").value;
+
+        const transport_type =
+            document.getElementById("transport").value;
+
+        const loader =
+            document.getElementById("loader");
+
+        const routesDiv =
+            document.getElementById("routes");
+
+        routesDiv.innerHTML = "";
+
+        loader.style.display = "block";
+
+        const response = await fetch(
+            "/search_transport",
+            {
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({ source, destination, date, passengers, transport_type })
+            }
+        );
+
+        const data = await response.json();
+
+        loader.style.display = "none";
+
+        if(!data.success){
+            routesDiv.innerHTML = `<div style="color:white;font-size:20px;">${data.message}</div>`;
+            return;
+        }
+
+        data.routes.forEach(route => {
+            routesDiv.innerHTML += `
+            <div class="route-card">
+                <div>
+                    <div class="operator">${route.operator}</div>
+                    <div class="time">${route.departure} → ${route.arrival}</div>
+                    <div class="time">${route.duration}</div>
+                    <div class="time">${route.class}</div>
+                </div>
+                <div>
+                    <div class="price">₹${route.price}</div>
+                    <button class="book-btn" onclick='bookNow(${JSON.stringify(route)},"${transport_type}","${source}","${destination}","${date}")'>
+                        Book Now
+                    </button>
+                </div>
+            </div>`;
+        });
+    }
+
+    function bookNow(route, transport, source, destination, date){
+        localStorage.setItem("planora_payment", JSON.stringify({
+            title: route.operator,
+            subtitle: `${source} → ${destination}`,
+            amount: route.price,
+            type: "transport",
+            extra:{
+                operator: route.operator,
+                transport_type: transport,
+                source: source,
+                destination: destination,
+                travel_date: date
+            }
+        }));
+        window.location.href = "/payment";
+    }
+
+    </script>
+</div>
+</body>
+</html>

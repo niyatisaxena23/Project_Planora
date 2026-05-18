@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hotel Booking – PLANORA</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <style>
+        /* ── HERO ── */
+        .hotel-hero {
+            position: relative;
+            width: 100%;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .hotel-hero-bg {
+            position: absolute;
+            inset: 0;
+            background: url('/static/bg2.jpeg') center/cover no-repeat;
+            filter: brightness(0.5);
+            z-index: 0;
+        }
+
+        .hotel-hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: white;
+            margin-bottom: 32px;
+        }
+
+        .hotel-hero-content h1 {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin: 0 0 8px 0;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+
+        .hotel-hero-content p {
+            font-size: 15px;
+            color: rgba(255,255,255,0.78);
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── SEARCH BAR inside hero ── */
+        .hotel-search-bar {
+            position: relative;
+            z-index: 2;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 20px;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+            gap: 0;
+        }
+
+        .search-field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 16px;
+            border-right: 1px solid rgba(255,255,255,0.2);
+            min-width: 0;
+        }
+
+        .search-field:first-child { padding-left: 4px; }
+        .search-field.no-border   { border-right: none; }
+
+        .field-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 5px;
+        }
+
+        /* ── DROPDOWNS — same as .dropdown in index ── */
+        .hotel-dropdown {
+            width: 100%;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: white;
+            outline: none;
+            box-shadow: none;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 2px center;
+            background-size: 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .hotel-dropdown {
+            background-color: transparent;
+            color: white;
+        }
+
+        /* THIS is the important fix */
+        .hotel-dropdown option {
+            background-color: #1a1a2e;   /* same as calendar */
+            color: white;
+        }
+
+        /* date display */
+        .date-wrapper { position: relative; }
+
+        .date-display-field {
+            font-size: 14px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.55);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .date-display-field.selected { color: white; font-weight: 600; }
+
+        /* guest input */
+        .guest-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            width: 100%;
+            padding: 0;
+        }
+        .guest-input::placeholder { color: rgba(255,255,255,0.55); font-weight: 400; }
+
+        /* search button */
+        .hotel-search-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-left: 14px;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+        }
+        .hotel-search-btn:hover { transform: scale(1.08); }
+        .hotel-search-btn:active { transform: scale(0.96); }
+
+        /* ── CALENDAR ── */
+        .calendar-popup {
+            display: none;
+            position: absolute;
+            top: calc(100% + 14px);
+            left: -16px;
+            z-index: 999;
+            background: rgba(20,20,40,0.97);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 14px;
+            padding: 16px;
+            width: 265px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .calendar-popup.open { display: block; }
+        .cal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+        .cal-header button { background:rgba(255,255,255,0.12); border:none; color:white; font-size:16px; width:28px; height:28px; border-radius:6px; cursor:pointer; }
+        .cal-header button:hover { background:rgba(255,255,255,0.25); }
+        .cal-month-label { color:white; font-size:13px; font-weight:700; }
+        .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+        .cal-dow { text-align:center; font-size:10px; color:rgba(255,255,255,0.4); font-weight:700; padding-bottom:5px; }
+        .cal-day { text-align:center; padding:6px 0; border-radius:6px; font-size:12px; color:white; cursor:pointer; transition:background 0.15s; }
+        .cal-day:hover { background:rgba(255,255,255,0.2); }
+        .cal-day.today { border:1px solid rgba(255,255,255,0.4); }
+        .cal-day.selected { background:white; color:#1a1a2e; font-weight:700; }
+        .cal-day.disabled { color:rgba(255,255,255,0.2); cursor:default; pointer-events:none; }
+        .cal-day.empty { cursor:default; }
+
+        /* ── RESULTS ── */
+        .results-section { max-width:920px; margin:40px auto 60px; padding:0 20px; }
+        .results-header { color:white; font-size:18px; font-weight:700; letter-spacing:1px; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+        .results-count { background:rgba(255,255,255,0.15); color:rgba(255,255,255,0.8); font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }
+
+        .hotels-wrapper {
+            position: relative;
+            overflow: visible;  
+        }
+
+        .hotels-grid {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding-bottom: 10px;
+        }
+
+        /* hide scrollbar (clean look) */
+        .hotels-grid::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hotel-card {
+            min-width: 300px;
+            max-width: 300px;
+        }
+
+        .hotel-card {
+            background:rgba(255,255,255,0.13);
+            backdrop-filter:blur(12px);
+            -webkit-backdrop-filter:blur(12px);
+            border:1px solid rgba(255,255,255,0.18);
+            border-radius:16px;
+            overflow:hidden;
+            color:white;
+            transition:transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .hotel-card:hover { transform:translateY(-5px); box-shadow:0 16px 40px rgba(0,0,0,0.45); }
+
+        .hotel-img-wrap {
+            width:100%; height:160px;
+            background:rgba(255,255,255,0.07);
+            display:flex; align-items:center; justify-content:center;
+            font-size:48px; position:relative;
+        }
+        .hotel-rating-badge { position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); color:white; font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; }
+
+        .hotel-card-body { padding:14px 16px 16px; }
+        .hotel-name { font-size:15px; font-weight:700; margin:0 0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .hotel-location { font-size:12px; color:rgba(255,255,255,0.58); margin:0 0 10px; }
+        .hotel-amenities { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+        .amenity-tag { background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.75); font-size:10px; font-weight:600; padding:3px 8px; border-radius:6px; }
+        .hotel-highlight { font-size:12px; color:rgba(255,255,255,0.6); margin:0 0 10px; line-height:1.4; }
+        .hotel-card-footer { display:flex; align-items:center; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px; }
+        .hotel-price { font-size:18px; font-weight:800; color:#86efac; }
+        .hotel-price span { font-size:11px; font-weight:400; color:rgba(255,255,255,0.5); }
+
+        .book-btn { background:white; color:#1a1a2e; border:none; padding:8px 16px; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s ease; }
+        .book-btn:hover { background:#f0f0f0; transform:scale(1.05); }
+
+        /* loading */
+        .loading-state { text-align:center; padding:60px 20px; color:rgba(255,255,255,0.75); }
+        .loading-spinner { width:44px; height:44px; border:3px solid rgba(255,255,255,0.15); border-top-color:white; border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 20px; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+        /* popular */
+        .popular-section { max-width:920px; margin:40px auto 60px; padding:0 20px; }
+        .popular-title { color:white; font-size:18px; font-weight:700; letter-spacing:1px; margin-bottom:20px; }
+
+        .scroll-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+        }
+
+        /* push fully outside */
+        .scroll-btn.left  { left: -50px; }
+        .scroll-btn.right { right: -50px; }
+        .scroll-btn:hover {
+            background: rgba(0,0,0,0.85);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a class="navbar-brand" href="/index">PLANORA</a>
+    <ul class="navbar-links">
+        <li><a href="/index">Home</a></li>
+        <li><a href="/index">Trip Planner</a></li>
+        <li><a href="/transport_booking">Transport Booking</a></li>
+        <li><a href="/hotel" class="active">Hotel Booking</a></li>
+        <li><a href="/chatbot">Travel Assistant</a></li>
+        <li><a href="/profile">Profile</a></li>
+    </ul>
+</nav>
+
+<!-- HERO — search bar lives INSIDE the hero div so it overlaps the bg -->
+<div class="hotel-hero">
+    <div class="hotel-hero-bg"></div>
+
+    <div class="hotel-hero-content">
+        <h1>Find Your Perfect Stay</h1>
+        <p>Book Hotels, Resorts &amp; Stays at the best prices</p>
+    </div>
+
+    <div class="hotel-search-bar">
+
+        <div class="search-field">
+            <div class="field-label">Destination</div>
+            <select id="hotelDestination" class="hotel-dropdown">
+                <option value="" disabled selected hidden>Where are you going?</option>
+                <option value="Goa">Goa</option>
+                <option value="Manali">Manali</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Jaipur">Jaipur</option>
+                <option value="Kerala">Kerala</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Udaipur">Udaipur</option>
+                <option value="Rishikesh">Rishikesh</option>
+                <option value="Shimla">Shimla</option>
+                <option value="Leh Ladakh">Leh Ladakh</option>
+                <option value="Paris">Paris</option>
+                <option value="London">London</option>
+                <option value="Dubai">Dubai</option>
+                <option value="Singapore">Singapore</option>
+                <option value="Bangkok">Bangkok</option>
+                <option value="Tokyo">Tokyo</option>
+                <option value="Bali">Bali</option>
+            </select>
+        </div>
+
+        <div class="search-field">
+            <div class="field-label">Check In</div>
+            <div class="date-wrapper" id="checkinWrapper">
+                <div class="date-display-field" id="checkinDisplay" onclick="toggleCal('checkin')">Add date</div>
+                <div class="calendar-popup" id="checkinCal">
+                    <div class="cal-header">
+                        <button onclick="changeMo('checkin',-1)">&#8249;</button>
+                        <span class="cal-month-label" id="checkinLabel"></span>
+                        <button onclick="changeMo('checkin',1)">&#8250;</button>
+                    </div>
+                    <div class="cal-grid" id="checkinGrid"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-field">
+            <div class="field-label">Check Out</div>
+            <div class="date-wrapper" id="checkoutWrapper">
+                <div class="date-display-field" id="checkoutDisplay" onclick="toggleCal('checkout')">Add date</div>
+                <div class="calendar-popup" id="checkoutCal">
+                    <div class="cal-header">
+                        <button onclick="changeMo('checkout',-1)">&#8249;</button>
+                        <span class="cal-month-label" id="checkoutLabel"></span>
+                        <button onclick="changeMo('checkout',1)">&#8250;</button>
+                    </div>
+                    <div class="cal-grid" id="checkoutGrid"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-field">
+            <div class="field-label">Guests</div>
+            <input type="number" id="guests" class="guest-input" placeholder="No. of guests" min="1" max="20">
+        </div>
+
+        <div class="search-field no-border">
+            <div class="field-label">Budget / Night</div>
+            <select id="hotelBudget" class="hotel-dropdown">
+                <option value="" disabled selected hidden>Select budget</option>
+                <option value="under ₹500">Under ₹500</option>
+                <option value="₹500 to ₹1000">₹500 – ₹1,000</option>
+                <option value="₹1000 to ₹3000">₹1,000 – ₹3,000</option>
+                <option value="₹3000 to ₹6000">₹3,000 – ₹6,000</option>
+                <option value="₹6000 to ₹10000">₹6,000 – ₹10,000</option>
+                <option value="above ₹10000">₹10,000+</option>
+            </select>
+        </div>
+
+        <button class="hotel-search-btn" onclick="searchHotels()">🔍</button>
+    </div>
+</div>
+
+<div id="hotelResults"></div>
+
+<div class="popular-section" id="popularSection">
+    <div class="popular-title">✨ Popular Destinations</div>
+    <div class="hotels-grid" id="popularGrid"></div>
+</div>
+
+<script>
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOWS   = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+const today  = new Date(); today.setHours(0,0,0,0);
+
+const calState = {
+    checkin:  { cur: new Date(today.getFullYear(), today.getMonth(), 1), sel: null },
+    checkout: { cur: new Date(today.getFullYear(), today.getMonth(), 1), sel: null }
+};
+
+function toggleCal(w) {
+    const other = w === "checkin" ? "checkoutCal" : "checkinCal";
+    document.getElementById(other).classList.remove("open");
+    const cal = document.getElementById(w + "Cal");
+    cal.classList.toggle("open");
+    if (cal.classList.contains("open")) renderCal(w);
+}
+
+function changeMo(w, dir) {
+    calState[w].cur.setMonth(calState[w].cur.getMonth() + dir);
+    renderCal(w);
+}
+
+function renderCal(w) {
+    const s     = calState[w];
+    const grid  = document.getElementById(w + "Grid");
+    const label = document.getElementById(w + "Label");
+    grid.innerHTML = "";
+    label.textContent = MONTHS[s.cur.getMonth()] + " " + s.cur.getFullYear();
+    DOWS.forEach(d => { const h = document.createElement("div"); h.className="cal-dow"; h.textContent=d; grid.appendChild(h); });
+    const firstDay    = new Date(s.cur.getFullYear(), s.cur.getMonth(), 1).getDay();
+    const daysInMonth = new Date(s.cur.getFullYear(), s.cur.getMonth()+1, 0).getDate();
+    const minDate     = w==="checkout" && calState.checkin.sel ? new Date(calState.checkin.sel.getTime()+86400000) : today;
+    for (let i=0;i<firstDay;i++){ const e=document.createElement("div"); e.className="cal-day empty"; grid.appendChild(e); }
+    for (let d=1;d<=daysInMonth;d++){
+        const cell=document.createElement("div"); cell.className="cal-day"; cell.textContent=d;
+        const cd=new Date(s.cur.getFullYear(),s.cur.getMonth(),d);
+        if(cd<minDate){ cell.classList.add("disabled"); }
+        else {
+            if(cd.getTime()===today.getTime()) cell.classList.add("today");
+            if(s.sel && cd.getTime()===s.sel.getTime()) cell.classList.add("selected");
+            cell.onclick=()=>pickDate(w,cd);
+        }
+        grid.appendChild(cell);
+    }
+}
+
+function pickDate(w,date){
+    calState[w].sel=date;
+    const disp=document.getElementById(w+"Display");
+    disp.textContent=date.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
+    disp.classList.add("selected");
+    document.getElementById(w+"Cal").classList.remove("open");
+    if(w==="checkin"&&calState.checkout.sel&&calState.checkout.sel<=date){
+        calState.checkout.sel=null;
+        const co=document.getElementById("checkoutDisplay"); co.textContent="Add date"; co.classList.remove("selected");
+    }
+}
+
+document.addEventListener("click",function(e){
+    ["checkin","checkout"].forEach(w=>{
+        const wr=document.getElementById(w+"Wrapper");
+        if(wr&&!wr.contains(e.target)) document.getElementById(w+"Cal").classList.remove("open");
+    });
+});
+
+// popular cards
+const popularHotels=[
+    {name:"Taj Lake Palace", location:"Udaipur",  price:"₹12,500",rating:"4.9",amenities:["Pool","Spa","Lake View"],emoji:"🏰",type:"Luxury Resort",   highlight:"Iconic floating palace offering unmatched views of Lake Pichola."},
+    {name:"The Leela Goa",   location:"Goa",      price:"₹8,200", rating:"4.8",amenities:["Beach","Pool","Bar"],    emoji:"🌴",type:"Beach Resort",     highlight:"Pristine beachfront property with world-class dining."},
+    {name:"Wildflower Hall", location:"Shimla",   price:"₹9,800", rating:"4.7",amenities:["Mountain View","Spa","Gym"],emoji:"🏔️",type:"Mountain Retreat",highlight:"Colonial-era retreat nestled in pine forests with panoramic Himalayas."},
+];
+
+function buildCard(h,i){
+    const tags=(h.amenities||[]).map(a=>`<span class="amenity-tag">${a}</span>`).join("");
+    const typeTag=h.type?`<span class="amenity-tag" style="background:rgba(134,239,172,0.18);color:#86efac;">${h.type}</span>`:"";
+    const hl=h.highlight?`<p class="hotel-highlight">${h.highlight}</p>`:"";
+    return `
+    <div class="hotel-card" style="animation:fadeUp 0.4s ease both;animation-delay:${i*0.08}s">
+        <div class="hotel-img-wrap">
+            <img 
+                src="${h.image_url || 'https://picsum.photos/400/300?random=' + i}" 
+                alt="${h.name}"
+                style="width:100%; height:100%; object-fit:cover;"
+                onerror="this.src='https://picsum.photos/400/300?random=${i+10}'"
+            >
+            <div class="hotel-rating-badge">⭐ ${h.rating}</div>
+        </div>
+        <div class="hotel-card-body">
+            <p class="hotel-name">${h.name}</p>
+            <p class="hotel-location">📍 ${h.location}</p>
+            <div class="hotel-amenities">${typeTag}${tags}</div>
+            ${hl}
+            <div class="hotel-card-footer">
+                <div class="hotel-price">${h.price} <span>/ night</span></div>
+                <button class="book-btn" onclick="bookHotel('${h.name}', '${h.location}', '${h.price}')">Book Now</button>
+            </div>
+        </div>
+    </div>`;
+}
+
+document.getElementById("popularGrid").innerHTML=popularHotels.map((h,i)=>buildCard(h,i)).join("");
+
+// ── Search — calls Flask /hotels route (Groq backend) ──
+async function searchHotels(){
+    const destination=document.getElementById("hotelDestination").value;
+    const checkin=calState.checkin.sel;
+    const checkout=calState.checkout.sel;
+    const guests=document.getElementById("guests").value;
+    const budget=document.getElementById("hotelBudget").value;
+
+    if(!destination||!checkin||!checkout||!guests||!budget){ alert("Please fill in all fields before searching!"); return; }
+
+    const nights=Math.max(1,Math.round((checkout-checkin)/86400000));
+    const checkinStr=checkin.toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"});
+    const checkoutStr=checkout.toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"});
+
+    document.getElementById("popularSection").style.display="none";
+    document.getElementById("hotelResults").innerHTML=`
+        <div class="results-section">
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Finding the best hotels in ${destination}…</p>
+            </div>
+        </div>`;
+
+    try{
+        const res=await fetch("/hotels",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({destination,checkin:checkinStr,checkout:checkoutStr,nights,guests,budget})
+        });
+        const data=await res.json();
+        if(!data.hotels||data.hotels.length===0) throw new Error("No hotels");
+
+        const emojis=["🏨","🏩","🛎️","🌅","🏖️","🗼","🌸","🏔️","🌴","🏰"];
+        const cards=data.hotels.map((h,i)=>buildCard({
+            name:h.name, location:h.location,
+            price:"₹"+Number(h.price_per_night).toLocaleString("en-IN"),
+            rating:h.rating, amenities:h.amenities||[], type:h.type||"",
+            highlight:h.highlight||"", emoji:emojis[i%emojis.length],
+            image_url: h.image_url
+        },i)).join("");
+
+        document.getElementById("hotelResults").innerHTML=`
+            <div class="results-section">
+                <div class="results-header">
+                    🏨 Hotels in ${destination}
+                    <span class="results-count">${data.hotels.length} found • ${nights} night${nights>1?"s":""} • ${guests} guest${guests>1?"s":""}</span>
+                </div>
+                <div class="hotels-wrapper">
+
+                    <button class="scroll-btn left" onclick="scrollHotels(-1)">❮</button>
+
+                    <div class="hotels-grid" id="hotelsGrid">
+                        ${cards}
+                    </div>
+
+                    <button class="scroll-btn right" onclick="scrollHotels(1)">❯</button>
+
+                </div>
+            </div>`;
+    } catch(err){
+        console.error(err);
+        document.getElementById("hotelResults").innerHTML=`
+            <div class="results-section">
+                <div class="loading-state"><p>⚠️ Could not load hotels. Please try again.</p></div>
+            </div>`;
+    }
+}
+</script>
+</body>
+</html>

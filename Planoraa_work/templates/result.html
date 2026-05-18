@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trip Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <style>
+        body {
+            background-image: url('');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            image-rendering: high-quality;
+            -webkit-font-smoothing: antialiased;
+        }
+ 
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            z-index: 0;
+        }
+ 
+        .navbar, #result {
+            position: relative;
+            z-index: 1;
+        }
+ 
+        /* ── Glass panel — same as .search-container ── */
+        .result-container {
+            width: 680px;
+            margin: 40px auto 60px;
+        }
+ 
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+ 
+        /* Trip header */
+        .trip-header h2 {
+            margin: 0 0 6px 0;
+            font-size: 26px;
+            color: white;
+            letter-spacing: 1px;
+        }
+ 
+        .trip-header p {
+            margin: 0;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 0.5px;
+        }
+ 
+        /* Section title */
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 1px;
+            margin: 0 0 16px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+        }
+ 
+        /* Day card */
+        .day-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+ 
+        .day-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+ 
+        /* Activity row */
+        .activity-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+ 
+        .activity-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+ 
+        .time-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+            margin-top: 3px;
+            letter-spacing: 0.5px;
+        }
+ 
+        .activity-info {
+            flex: 1;
+        }
+ 
+        .activity-info strong {
+            font-size: 14px;
+            color: white;
+            display: block;
+            margin-bottom: 2px;
+        }
+ 
+        .activity-info p {
+            margin: 0;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.65);
+            line-height: 1.4;
+        }
+ 
+        .activity-cost {
+            font-weight: 700;
+            color: #86efac;  /* soft green */
+            font-size: 13px;
+            white-space: nowrap;
+            margin-top: 3px;
+        }
+ 
+        /* Transport card */
+        .transport-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+        }
+ 
+        .transport-card:last-child {
+            margin-bottom: 0;
+        }
+ 
+        .transport-card h4 {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+            color: white;
+        }
+ 
+        .transport-card p {
+            margin: 0;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+ 
+        .transport-card button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+ 
+        .transport-card button:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.05);
+        }
+ 
+        .transport-card.unavailable {
+            opacity: 0.45;
+        }
+ 
+        .transport-card.unavailable button {
+            cursor: not-allowed;
+        }
+ 
+        .transport-card.unavailable button:hover {
+            transform: none;
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+ 
+<nav class="navbar">
+    <a class="navbar-brand" href="/index">PLANORA</a>
+    <ul class="navbar-links">
+        <li><a href="/index">Home</a></li>
+        <li><a href="/index" class="active">Trip Planner</a></li>
+        <li><a href="/transport_booking">Transport Booking</a></li>
+        <li><a href="/hotel">Hotel Booking</a></li>
+        <li><a href="/chatbot">Travel Assistant</a></li>
+        <li><a href="/profile" >Profile</a></li>
+    </ul>
+</nav>
+ 
+<div id="result">
+    <p style="text-align:center; margin-top: 80px; color: white; font-size: 16px; letter-spacing: 1px;">
+        Loading your trip...
+    </p>
+</div>
+ 
+</body>
+</html>

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PLANORA – Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* ── Page layout ── */
+        .profile-page {
+            max-width: 780px;
+            margin: 40px auto 80px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Glass panel (same as result page) ── */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 28px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin: 0 0 22px 0;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* ── Avatar block ── */
+        .avatar-block {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .avatar-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .avatar-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            display: block;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .avatar-edit-btn {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: white;
+            color: #1a1a2e;
+            border: none;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
+        }
+
+        .avatar-edit-btn:hover { transform: scale(1.1); }
+
+        #avatarInput { display: none; }
+
+        .avatar-meta h3 {
+            margin: 0 0 4px 0;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .avatar-meta p {
+            margin: 0;
+            font-size: 13px;
+            color: rgba(255,255,255,0.65);
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Info grid ── */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .info-field label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Read-only value */
+        .info-value {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: rgba(255,255,255,0.85);
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Editable input */
+        .info-input {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: white;
+            outline: none;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .info-input::placeholder { color: rgba(255,255,255,0.45); }
+        .info-input:focus { border-color: rgba(255,255,255,0.6); }
+
+        /* ── Buttons ── */
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-edit {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-edit:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .btn-save {
+            background: white;
+            color: #1a1a2e;
+        }
+
+        .btn-save:hover {
+            background: #e8e8f0;
+            transform: scale(1.03);
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: white;
+            color: #1a1a2e;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ── Trip History ── */
+        .no-trips {
+            text-align: center;
+            padding: 36px 0 16px;
+            color: rgba(255,255,255,0.45);
+        }
+
+        .no-trips .no-trips-icon {
+            font-size: 44px;
+            margin-bottom: 12px;
+        }
+
+        .no-trips p {
+            margin: 0;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .trip-history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+        }
+
+        .trip-history-item:last-child { margin-bottom: 0; }
+
+        .trip-history-item .trip-dest {
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+            margin: 0 0 4px 0;
+        }
+
+        .trip-history-item .trip-meta {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: 0.4px;
+        }
+
+        .trip-badge {
+            background: rgba(134, 239, 172, 0.2);
+            color: #86efac;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        /* Full-width field for location */
+        .info-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Fix: body background must cover full scrollable page, not just viewport */
+        body {
+            min-height: 100vh;
+            height: auto !important;
+            background-attachment: fixed !important;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar (matches your existing pages) -->
+<nav class="navbar">
+    <a class="navbar-brand" href="/index">PLANORA</a>
+    <ul class="navbar-links">
+        <li><a href="/index">Home</a></li>
+        <li><a href="/index">Trip Planner</a></li>
+        <li><a href="/transport_booking">Transport Booking</a></li>
+        <li><a href="/hotel">Hotel Booking</a></li>
+        <li><a href="/chatbot">Travel Assistant</a></li>
+        <li><a href="/profile" class="active">Profile</a></li>
+    </ul>
+</nav>
+
+<div class="profile-page">
+
+    <!-- ── Profile Card ── -->
+    <div class="glass-panel">
+        <div class="section-title">👤 My Profile</div>
+
+        <!-- Avatar -->
+        <div class="avatar-block" style="margin-bottom: 28px;">
+            <div class="avatar-wrap">
+                <img id="avatarPreview" class="avatar-img" src="" alt="Profile Photo"
+                     onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect width=%22100%22 height=%22100%22 fill=%22rgba(255,255,255,0.15)%22/><text x=%2250%22 y=%2260%22 font-size=%2242%22 text-anchor=%22middle%22 fill=%22rgba(255,255,255,0.5)%22>👤</text></svg>'">
+                <button class="avatar-edit-btn" onclick="document.getElementById('avatarInput').click()" title="Change photo">✏️</button>
+                <input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarChange(event)">
+            </div>
+            <div class="avatar-meta">
+                <h3 id="displayName">Loading...</h3>
+                <p id="displayEmail">—</p>
+            </div>
+        </div>
+
+        <!-- Info fields -->
+        <div class="info-grid" id="infoGrid">
+
+            <!-- Name -->
+            <div class="info-field">
+                <label>Full Name</label>
+                <div class="info-value" id="viewName">—</div>
+                <input class="info-input" id="editName" placeholder="Full Name" style="display:none;">
+            </div>
+
+            <!-- Phone -->
+            <div class="info-field">
+                <label>Phone Number</label>
+                <div class="info-value" id="viewPhone">—</div>
+                <!-- phone is view-only, no edit input -->
+            </div>
+
+            <!-- Email (always read-only) -->
+            <div class="info-field">
+                <label>Email Address</label>
+                <div class="info-value" id="viewEmailField">—</div>
+            </div>
+
+            <!-- Location -->
+            <div class="info-field">
+                <label>Home Location</label>
+                <div class="info-value" id="viewLocation">—</div>
+                <input 
+                    type="text" 
+                    class="info-input" 
+                    id="editLocation" 
+                    placeholder="Enter your location"
+                    style="display:none;"
+                >
+            </div>
+
+        </div>
+
+       
+    <div class="profile-actions" id="btnRow">
+        <button class="btn btn-edit" onclick="enterEditMode()">✏️ Edit Profile</button>
+        <button class="btn btn-logout" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div>
+    <!-- ── Trip History ── -->
+    <div class="glass-panel">
+        <div class="section-title">🗺️ Trip History</div>
+        <div id="tripHistoryContainer">
+            <!-- Filled by JS -->
+        </div>
+    </div>
+
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<script>
+    // ─────────────────────────────────────────
+    // LOAD user data from localStorage / server
+    // ─────────────────────────────────────────
+    const profile = {
+        name:     "",
+        email:    "",
+        phone:    "",
+        location: "",
+        avatar:   ""
+    };
+
+    function loadProfile() {
+        // Try fetching from backend; fall back to localStorage
+        const email = localStorage.getItem("userEmail");
+
+        if (!email) {
+            console.error("No email found in localStorage");
+            return;
+        }
+
+        fetch(`/get_profile?email=${email}`)
+            .then(r => r.json())
+            .then(data => {
+                console.log("PROFILE DATA:", data); 
+                profile.name     = data.name     || "";
+                profile.email    = data.email    || "";
+                profile.phone    = data.phone    || "";
+                profile.location = data.location || "";
+                profile.avatar = data.avatar || "";
+                renderProfile();
+            })
+            .catch(() => {
+                // Backend not reachable – use localStorage only
+                profile.name     = localStorage.getItem("profileName")     || "Traveller";
+                profile.email    = localStorage.getItem("profileEmail")    || "";
+                profile.phone    = localStorage.getItem("profilePhone")    || "";
+                profile.location = localStorage.getItem("profileLocation") || "";
+                profile.avatar   = localStorage.getItem("profileAvatar")   || "";
+                renderProfile();
+            });
+    }
+
+    function renderProfile() {
+        document.getElementById("displayName").textContent  = profile.name  || "Traveller";
+        document.getElementById("displayEmail").textContent = profile.email || "No email set";
+
+        document.getElementById("viewName").textContent         = profile.name     || "—";
+        document.getElementById("viewPhone").textContent        = profile.phone    || "—";
+        document.getElementById("viewEmailField").textContent   = profile.email    || "—";
+        document.getElementById("viewLocation").textContent     = profile.location || "—";
+
+        if (profile.avatar) {
+            document.getElementById("avatarPreview").src = profile.avatar;
+        }
+    }
+
+    // ─────────────────────────────────────────
+    // EDIT MODE
+    // ─────────────────────────────────────────
+    let originalValues = {};
+
+    function enterEditMode() {
+        // Cache originals for cancel
+        originalValues = { ...profile };
+
+        // Show inputs, hide values
+        toggle("viewName",     false);
+        toggle("editName",     true);
+        toggle("viewLocation", false);
+        toggle("editLocation", true);
+
+        document.getElementById("editName").value = profile.name;
+        const locSel = document.getElementById("editLocation");
+        locSel.value = profile.location;
+
+        // Swap buttons
+        document.getElementById("btnRow").innerHTML = `
+            <button class="btn btn-cancel" onclick="cancelEdit()">Cancel</button>
+            <button class="btn btn-save"   onclick="saveProfile()">💾 Save Changes</button>
+        `;
+    }
+
+    function cancelEdit() {
+        Object.assign(profile, originalValues);
+        renderProfile();
+        exitEditMode();
+    }
+
+    function exitEditMode() {
+        toggle("viewName",     true);
+        toggle("editName",     false);
+        toggle("viewLocation", true);
+        toggle("editLocation", false);
+
+        document.getElementById("btnRow").innerHTML = `
+            <button class="btn btn-edit" onclick="enterEditMode()">✏️ Edit Profile</button>
+            <button class="btn btn-logout" onclick="logout()">Logout</button>
+        `;
+    }
+
+    function saveProfile() {
+        profile.name     = document.getElementById("editName").value.trim() || profile.name;
+        profile.location = document.getElementById("editLocation").value || profile.location;
+
+        fetch("/update_profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email: localStorage.getItem("userEmail"),   // ✅ REQUIRED
+                name: profile.name,
+                location: profile.location,
+                avatar: profile.avatar || ""
+            })
+        });
+
+        renderProfile();
+        exitEditMode();
+        showToast("Profile updated ✓");
+    }
+
+    // ─────────────────────────────────────────
+    // AVATAR
+    // ─────────────────────────────────────────
+    function handleAvatarChange(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const dataUrl = e.target.result;
+
+            profile.avatar = dataUrl;
+            document.getElementById("avatarPreview").src = dataUrl;
+
+            fetch("/update_profile", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: localStorage.getItem("userEmail"),       
+                    name: profile.name,
+                    location: profile.location,
+                    avatar: profile.avatar
+                })
+            });
+
+            showToast("Profile photo updated ✓");
+        };
+
+        reader.readAsDataURL(file);
+    }
+    // ─────────────────────────────────────────
+    // TRIP HISTORY
+    // ─────────────────────────────────────────
+    function loadTripHistory() {
+        // Collect trips saved whenever /result loads
+        const raw = localStorage.getItem("tripHistory");
+        const allTrips = raw ? JSON.parse(raw) : [];
+        // Filter out corrupt/blank entries that have no destination
+        const trips = allTrips.filter(t => t && t.destination && t.destination.trim() !== "");
+
+        const container = document.getElementById("tripHistoryContainer");
+
+        if (!trips.length) {
+            container.innerHTML = `
+                <div class="no-trips">
+                    <div class="no-trips-icon">🗺️</div>
+                    <p>No bookings yet — plan your first trip!</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = trips.map(t => {
+            const isHotel     = t.type && t.type.includes("Hotel");
+            const isTransport = t.type && (t.type.includes("Transport") || t.type.includes("🚗"));
+            const isTrip      = !isHotel && !isTransport;
+
+            const badgeText  = isHotel ? "Booked ✓" : isTransport ? "Booked ✓" : "Planned ✓";
+            const daysLabel  = isTrip ? `${t.days} Days  •  ` : (t.days && t.days !== "—" ? `${t.days} Nights  •  ` : "");
+            const typeLabel  = t.type || "Trip";
+
+            return `
+            <div class="trip-history-item">
+                <div>
+                    <p class="trip-dest">${t.destination}</p>
+                    <p class="trip-meta">${t.date ? "📅 " + t.date + "  •  " : ""}${daysLabel}₹${Number(t.budget).toLocaleString("en-IN")}  •  ${typeLabel}</p>
+                </div>
+                <span class="trip-badge">${badgeText}</span>
+            </div>`;
+        }).join("");
+    }
+
+    // ─────────────────────────────────────────
+    // UTILS
+    // ─────────────────────────────────────────
+    function toggle(id, show) {
+        document.getElementById(id).style.display = show ? "" : "none";
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2500);
+    }
+
+    // ─────────────────────────────────────────
+    // INIT
+    // ─────────────────────────────────────────
+    loadProfile();
+    loadTripHistory();
+
+    document.addEventListener("DOMContentLoaded", () => {
+        if (typeof moveIndicator === "function") {
+            moveIndicator();
+
+            window.addEventListener("resize", moveIndicator);
+
+            
+        }
+    });
+
+</script>
+
+</body>
+</html>

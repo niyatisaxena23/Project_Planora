@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Travel Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</head>
+<body class="login-body">
+
+<div class="overlay"></div>
+
+<div class="login-wrapper">
+
+    <!-- LEFT TEXT -->
+    <div class="hero-text">
+        <h4>PLANORA</h4>
+        <h1>EXPLORE<br>HORIZONS</h1>
+        <p>
+            Where Your Dream Destinations<br>
+            Become Reality.
+        </p>
+    </div>
+
+    <!-- LOGIN CARD -->
+    <div class="auth-container">
+
+    <!-- LOGIN PANEL -->
+    <div class="login-card panel login-panel">
+        <h3>Login</h3>
+
+        <input type="email" id="email" placeholder="Enter your email">
+        <input type="password" id="password" placeholder="Enter password">
+
+        <div class="forgot">Forgot password?</div>
+
+        <button type="button" class="login-btn" onclick="login(this)">
+            <span class="plane">✈</span> LOGIN
+        </button>
+
+        <p class="switch-text">
+            Don't have an account?
+            <span onclick="showSignup()">Sign up</span>
+        </p>
+    </div>
+
+
+    <!-- SIGNUP PANEL -->
+    <div class="login-card panel signup-panel">
+        <h3>Sign Up</h3>
+
+            <input type="text" id="name" placeholder="Full Name">
+            <input type="email" id="signup-email" placeholder="Email">
+            <input type="text" id="phone" placeholder="Phone No">
+            <input type="password" id="signup-password" placeholder="Password">
+
+            <button type="button" class="login-btn" onclick="register()">
+                Create Account
+            </button>
+
+            <p class="switch-text">
+                Already have an account?
+                <span onclick="showLogin()">Login</span>
+            </p>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function login(btn) {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+        alert("Fill all fields");
+        return;
+    }
+
+    fetch("/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: email,
+            password: password
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        if (data.message === "Login successful") {
+
+            localStorage.setItem("loggedIn", "true");
+            localStorage.setItem("userEmail", email);
+
+            const plane = btn.querySelector(".plane");
+            plane.classList.add("fly-now");
+
+            setTimeout(() => {
+                document.body.classList.add("fade-out");
+            }, 300);
+
+            setTimeout(() => {
+                window.location.href = "/index";
+            }, 800);
+
+        } else {
+            alert("Invalid credentials");
+        }
+
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("Server error");
+    });
+}
+</script>
+
+<script>
+function register() {
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("signup-email").value;
+    const phone = document.getElementById("phone").value;
+    const password = document.getElementById("signup-password").value;
+
+    if (!name || !email || !phone || !password) {
+        alert("Please fill all fields");
+        return;
+    }
+
+    fetch("/register", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name: name,
+            email: email,
+            phone: phone,
+            password: password
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        showLogin(); // switch back to login panel
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Something went wrong");
+    });
+}
+</script>
+</body>
+</html>
